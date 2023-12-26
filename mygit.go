@@ -37,28 +37,17 @@ func shQ(s string, args ...any) string {
 	return shellCmd(s, true, args...)
 }
 
-var dontShowGit = false
-
-func setShowGit(v bool) {
-	dontShowGit = v
-}
-
-func disableShowGit() bool {
-	old := dontShowGit
-	dontShowGit = true
-	return old
-}
+var verbose = flag.Bool("v", false, "show commands")
 
 func shellCmd(s string, ignoreErr bool, args ...any) string {
 	if len(args) > 0 {
 		s = fmt.Sprintf(s, args...)
 	}
 
-	if !dontShowGit && strings.HasPrefix(s, "git") {
-		fmt.Println(s)
+	if *verbose {
+		log.Println(s)
 	}
 	c := exec.Command("/bin/sh", "-c", s)
-	// c.Stderr = os.Stderr
 	b, err := c.Output()
 	if err != nil {
 		if ignoreErr {
@@ -80,7 +69,6 @@ var (
 )
 
 func RepoDir() string {
-	defer setShowGit(disableShowGit())
 	if repoDir == "" {
 		repoDir = shQ("git rev-parse --show-toplevel")
 	}
@@ -573,7 +561,7 @@ func (op OpList) DfDiff() {
 	cached := flag.Bool("c", false, "cached")
 	parseFlag("[diff_arg]")
 	args := diffArgs(*cached, "", flag.Args())
-	sh("git diff %s", args)
+	fmt.Println(sh("git diff %s", args))
 }
 
 func diffArgs(cached bool, difftool string, args []string) string {
@@ -590,8 +578,6 @@ func diffArgs(cached bool, difftool string, args []string) string {
 			sb.WriteString(env)
 			sb.WriteString(" ")
 		}
-	default:
-		panic(difftool)
 	}
 	sb.WriteString(quoteArgs(args, ""))
 	return sb.String()
@@ -786,7 +772,6 @@ var prInTitleRe = regexp.MustCompile(`\(#[0-9]+\)$`)
 
 func (op OpList) SShowStatusLocalBranches() {
 	parseFlag()
-	defer setShowGit(disableShowGit())
 
 	var sb strings.Builder
 	sep := "================"
@@ -832,7 +817,6 @@ func (op OpList) ScShowCommitSummary() {
 func (op OpList) SlListCommits() {
 	remote := flag.Bool("r", false, "remote branch")
 	parseFlag("[branch_re]", "[n_commits]")
-	defer setShowGit(disableShowGit())
 
 	var pat string
 	num := 3
@@ -861,7 +845,6 @@ func (op OpList) SlListCommits() {
 
 func (op OpList) SrListRemoteBranches() {
 	parseFlag("[branch_re]")
-	defer setShowGit(disableShowGit())
 
 	pat := ".*"
 	if flag.NArg() > 0 {
@@ -1009,7 +992,6 @@ func (op OpList) WiWorktreeInfo() {
 
 func (op OpList) IHead() {
 	parseFlag()
-	defer setShowGit(disableShowGit())
 	br := shQ("git rev-parse --abbrev-ref HEAD")
 	if br == "" {
 		return
