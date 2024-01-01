@@ -60,7 +60,6 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 
 var (
 	repoDir,
-	devBranch,
 	curBranch,
 	mainBranch,
 	repoBranch,
@@ -73,17 +72,6 @@ func RepoDir() string {
 		repoDir = shQ("git rev-parse --show-toplevel")
 	}
 	return repoDir
-}
-
-func DevBranch() string {
-	rd := RepoDir()
-	bd := filepath.Base(rd)
-	wt := strings.TrimPrefix(bd, "wt-")
-	if wt != bd {
-		return fmt.Sprintf("%s/x%s", Username(), wt)
-	} else {
-		return MainBranch()
-	}
 }
 
 func getCurBranch() string {
@@ -272,7 +260,7 @@ func (op OpList) BoCheckoutLocalBranch() {
 
 	var br string
 	if flag.NArg() == 0 {
-		br = DevBranch()
+		br = RepoBranch()
 	} else {
 		br = localBranch(flag.Arg(0), false)
 	}
@@ -374,7 +362,7 @@ func deleteBranches(lbrs, rbrs []string) {
 
 func deleteThisBranch() {
 	bc := CurBranch()
-	br := DevBranch()
+	br := RepoBranch()
 	if bc == br {
 		log.Fatalf("cannot delete repo branch %s", bc)
 	}
