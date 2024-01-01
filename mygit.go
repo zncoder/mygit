@@ -110,12 +110,7 @@ func MainBranch() string {
 
 func RepoBranch() string {
 	rd := RepoDir()
-	base := filepath.Base(rd)
-	wt := strings.TrimPrefix(base, "wt-")
-	if wt == base {
-		return MainBranch()
-	}
-	return wt
+	return filepath.Base(rd)
 }
 
 func MainWorktreeDir() string {
@@ -967,15 +962,36 @@ func (op OpList) GsGithubStatus() {
 }
 
 func (op OpList) WnWorktreeAdd() {
+	parseFlag("worktree_id")
+	wt := flag.Arg(0)
+	if strings.HasPrefix(wt, "wt-") {
+		log.Fatalf("worktree_id cannot begin with wt-")
+	}
+
+	bw := fmt.Sprintf("wt-%s", wt)
+	rd := RepoDir()
+	wd := filepath.Join(filepath.Dir(rd), bw)
+	if _, err := os.Stat(wd); err == nil {
+		log.Fatalf("worktree:%q already exists", bw)
+	}
+	sh(`git worktree add -b %s "%s"`, bw, wd)
+	log.Printf("worktree %q is created at %q", bw, wd)
 }
 
 func (op OpList) WlWorktreeList() {
+	fmt.Println(sh("git worktree list"))
 }
 
 func (op OpList) WdWorktreeRemove() {
-}
+	parseFlag("worktree_id")
+	wt := flag.Arg(0)
 
-func (op OpList) WiWorktreeInfo() {
+	bw := fmt.Sprintf("wt-%s", wt)
+	rd := RepoDir()
+	wd := filepath.Join(filepath.Dir(rd), bw)
+	sh("git worktree remove %s", bw)
+	sh("git branch -D %s", bw)
+	log.Printf("worktree %q at %q is deleted", bw, wd)
 }
 
 func (op OpList) IHead() {
