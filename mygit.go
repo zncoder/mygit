@@ -245,7 +245,7 @@ func pullMain() {
 		log.Printf("switch to worktree: %s", br)
 		checkoutBranch(br, false)
 		log.Printf("pull in %s", br)
-		sh("git rebase main")
+		sh("git rebase %s", bm)
 	}
 
 	if bc != bm || bc != br {
@@ -422,11 +422,13 @@ func (op OpList) PsPush() {
 	force := flag.Bool("f", false, "force push")
 	parseFlag()
 	bc := CurBranch()
-	if bc == MainBranch() {
+	bm := MainBranch()
+	if bc == bm {
 		if !*force {
 			log.Fatalf("cannot force push to main")
 		}
-		lns := strings.Split(sh("git log --oneline origin/main..main"), "\n")
+		s := sh("git log --oneline origin/%s..%s", bm, bm)
+		lns := strings.Split(s, "\n")
 		for _, ln := range lns {
 			ln := strings.ToLower(strings.TrimSpace(ln))
 			if strings.HasSuffix(ln, "wip") || strings.Contains(ln, " wip ") {
