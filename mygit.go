@@ -110,7 +110,11 @@ func MainBranch() string {
 
 func RepoBranch() string {
 	rd := RepoDir()
-	return filepath.Base(rd)
+	bd := filepath.Base(rd)
+	if strings.HasPrefix(bd, "wt-") {
+		return bd
+	}
+	return MainBranch()
 }
 
 func MainWorktreeDir() string {
