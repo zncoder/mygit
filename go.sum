@@ -1,2 +1,4 @@
-github.com/zncoder/assert v0.0.0-20240103043644-71d4058cd0dd h1:zN/0LjF0RTw+DoMpdPlLpoL643HOzl2CUaeME518LVY=
-github.com/zncoder/assert v0.0.0-20240103043644-71d4058cd0dd/go.mod h1:OFkJ2nzva0Z4n2UcdjKrHdsA/gwu3J5mpHiWIsCl+G8=
+github.com/zncoder/check v0.0.0-20240103192730-bc8f4d856a92 h1:TsyMClGzAoBMS5YC+qFkoJkSfZmlMg/3lufU48uC9+Y=
+github.com/zncoder/check v0.0.0-20240103192730-bc8f4d856a92/go.mod h1:dee1ljbNl8dSrDgTCj3OOfAL5MbG2u4y28MtOlpzJUQ=
+github.com/zncoder/check v0.0.0-20240103194801-c8ef232333e9 h1:NPRnlGAFVu5ilvEr8S4unaWDo7jO2wUlKtr680Yb33E=
+github.com/zncoder/check v0.0.0-20240103194801-c8ef232333e9/go.mod h1:dee1ljbNl8dSrDgTCj3OOfAL5MbG2u4y28MtOlpzJUQ=

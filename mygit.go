@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/zncoder/assert"
+	"github.com/zncoder/check"
 	"log"
 	"os"
 	"os/exec"
@@ -52,7 +52,7 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 	if *verbose {
 		c.Stderr = os.Stderr
 	}
-	b := assert.V(c.Output()).Ignore(ignoreErr).Fatal("run", "args", c.Args[2])
+	b := check.V(c.Output()).I(ignoreErr).F("run", "args", c.Args[2])
 	return string(bytes.TrimSpace(b))
 }
 
@@ -89,7 +89,7 @@ func CurBranch() string {
 
 func Username() string {
 	if username == "" {
-		u := assert.Must(user.Current())
+		u := check.Vp(user.Current())
 		username = u.Username
 	}
 	return username
@@ -121,7 +121,7 @@ func MainWorktreeDir() string {
 			if strings.Contains(ln, "/wt-") {
 				continue
 			}
-			assert.T(dir == "").Fatal("main worktree not unique", "worktree_list", lns)
+			check.T(dir == "").F("main worktree not unique", "worktree_list", lns)
 			dir = strings.Fields(ln)[0]
 		}
 		return dir
@@ -131,7 +131,7 @@ func MainWorktreeDir() string {
 
 func localBranch(pat string, inUse bool) string {
 	brs := matchLocalBranches(pat, inUse, false)
-	assert.T(len(brs) == 1).Fatal("not unique branch", "pattern", pat, "local_branches", brs)
+	check.T(len(brs) == 1).F("not unique branch", "pattern", pat, "local_branches", brs)
 	return brs[0]
 }
 
@@ -165,7 +165,7 @@ func matchLocalBranches(pat string, inUse, tmp bool) []string {
 
 func remoteBranch(pat string) string {
 	brs := matchRemoteBranches(pat, false, false)
-	assert.T(len(brs) == 1).Fatal("not unique remote branch", "pattern", pat, "remote_branches", brs)
+	check.T(len(brs) == 1).F("not unique remote branch", "pattern", pat, "remote_branches", brs)
 	return brs[0]
 }
 
@@ -205,7 +205,7 @@ func pullMain() {
 	bc := CurBranch()
 	bm := MainBranch()
 	br := RepoBranch()
-	wd := assert.Must(os.Getwd())
+	wd := check.Vp(os.Getwd())
 	onWt := br != bm
 	if onWt {
 		mwd := MainWorktreeDir()
@@ -218,7 +218,7 @@ func pullMain() {
 	}
 
 	cb := getCurBranch()
-	assert.T(cb == bm).Fatal("not in main branch", "current_branch", cb, "main_branch", bm)
+	check.T(cb == bm).F("not in main branch", "current_branch", cb, "main_branch", bm)
 	log.Printf("pull in %s", bm)
 	sh("git pull --rebase")
 
@@ -250,7 +250,7 @@ func (op OpList) BoCheckoutLocalBranch() {
 	}
 
 	bc := CurBranch()
-	assert.T(bc != br).Fatal("already in branch", "current", bc)
+	check.T(bc != br).F("already in branch", "current", bc)
 	log.Printf("branch %s -> %s", bc, br)
 	checkoutBranch(br, *revertBuf)
 }
@@ -275,7 +275,7 @@ func (op OpList) BnNewBranch() {
 	parseFlag("branch_name", "[base_branch_re_or_dot]")
 
 	br := flag.Arg(0)
-	assert.T(!strings.Contains(br, "/")).Fatal("branch name cannot contain `/`", "branch", br)
+	check.T(!strings.Contains(br, "/")).F("branch name cannot contain `/`", "branch", br)
 	br = fmt.Sprintf("%s/%s", Username(), br)
 
 	var bb string
@@ -298,7 +298,7 @@ func (op OpList) BrTrackRemoteBranch() {
 	parseFlag()
 	bc := CurBranch()
 	br := remoteBranch(bc)
-	assert.T(bc == br).Fatal("remote branch mismatch", "current", bc, "remote", br)
+	check.T(bc == br).F("remote branch mismatch", "current", bc, "remote", br)
 	sh("git branch -u origin/%s", bc)
 }
 
@@ -341,7 +341,7 @@ func deleteBranches(lbrs, rbrs []string) {
 func deleteThisBranch() {
 	bc := CurBranch()
 	br := RepoBranch()
-	assert.T(bc != br).Fatal("cannot delete repo branch", "repo_branch", bc)
+	check.T(bc != br).F("cannot delete repo branch", "repo_branch", bc)
 
 	rbrs := matchRemoteBranches(bc, true, true)
 	yorn("delete this branch:%s and remote branches:%v", bc, rbrs)
@@ -356,8 +356,8 @@ func yorn(s string, args ...any) {
 	}
 	fmt.Print(s + " ([y]/n)?: ")
 	b := make([]byte, 2)
-	n := assert.Must(os.Stdin.Read(b))
-	assert.T(n <= 1 || b[0] == 'y').Fatal("aborted")
+	n := check.Vp(os.Stdin.Read(b))
+	check.T(n <= 1 || b[0] == 'y').F("aborted")
 }
 
 func (op OpList) CaCherryPickAbort() {
@@ -396,12 +396,12 @@ func (op OpList) PsPush() {
 	bc := CurBranch()
 	bm := MainBranch()
 	if bc == bm {
-		assert.T(*force).Fatal("cannot force push to main")
+		check.T(*force).F("cannot force push to main")
 		s := sh("git log --oneline origin/%s..%s", bm, bm)
 		lns := strings.Split(s, "\n")
 		for _, ln := range lns {
 			ln := strings.ToLower(strings.TrimSpace(ln))
-			assert.T(!strings.HasSuffix(ln, "wip") && !strings.Contains(ln, " wip ")).Fatal("cannot push wip commit to main")
+			check.T(!strings.HasSuffix(ln, "wip") && !strings.Contains(ln, " wip ")).F("cannot push wip commit to main")
 		}
 	}
 	if *force {
@@ -420,7 +420,7 @@ func (op OpList) MwWip() {
 	bc := CurBranch()
 	br := RepoBranch()
 	bm := MainBranch()
-	assert.T(bc != br && bc != bm).Fatal("cannot wip on default branch", "main", bm, "repo", br)
+	check.T(bc != br && bc != bm).F("cannot wip on default branch", "main", bm, "repo", br)
 	if isStaged() {
 		sh("git commit -m wip")
 	} else {
@@ -460,7 +460,7 @@ func (op OpList) McCommit() {
 	bc := CurBranch()
 	bm := MainBranch()
 	br := RepoBranch()
-	assert.T(*force || (bc != bm && bc != br)).Fatal("cannot commit to default branch", "main", bm, "repo", br)
+	check.T(*force || (bc != bm && bc != br)).F("cannot commit to default branch", "main", bm, "repo", br)
 	msg := quoteArgs(flag.Args(), "-m")
 	if isStaged() {
 		sh("git commit %s", msg)
@@ -700,7 +700,7 @@ func parseNumCommitsOrCommit(squash bool) string {
 	if err != nil {
 		return flag.Arg(0)
 	}
-	assert.T(n > 0 && n <= 9 && (n != 1 || !squash)).Fatal("invalid n_commits", "n", n)
+	check.T(n > 0 && n <= 9 && (n != 1 || !squash)).F("invalid n_commits", "n", n)
 	if n == 1 {
 		return "HEAD"
 	}
@@ -813,7 +813,7 @@ func (op OpList) SvShowFileAtVersion() {
 	if _, err := os.Stat(filename); err != nil {
 		cm, filename = filename, cm
 	}
-	assert.V(os.Stat(filename)).Fatal("not file", "arg0", cm, "arg1", filename)
+	check.V(os.Stat(filename)).F("not file", "arg0", cm, "arg1", filename)
 	if !isCommit(cm) {
 		cm = localBranch(cm, true)
 	}
@@ -821,7 +821,7 @@ func (op OpList) SvShowFileAtVersion() {
 	filename, _ = filepath.Abs(filename)
 	rd := filepath.Clean(RepoDir())
 	fn := strings.TrimPrefix(filename, rd)
-	assert.T(fn != filename).Fatal("filename not in repo", "filename", filename, "repo", rd)
+	check.T(fn != filename).F("filename not in repo", "filename", filename, "repo", rd)
 	filename = strings.TrimLeft(fn, "/")
 
 	s := sh(`git show %s:"%s"`, cm, filename)
@@ -868,10 +868,10 @@ func (op OpList) GtGithubPrDraft() {
 
 func showPR(br string) {
 	state := prState(br)
-	assert.T(state == "OPEN").Fatal("no pr is open", "branch", br)
+	check.T(state == "OPEN").F("no pr is open", "branch", br)
 
 	url := shQ("gh pr view %s --json url -q .url", br)
-	assert.T(url != "").Fatal("not pr url found", "branch", br)
+	check.T(url != "").F("not pr url found", "branch", br)
 	shQ(`open "%s"`, url)
 }
 
@@ -924,7 +924,7 @@ func (op OpList) GsGithubStatus() {
 func (op OpList) WnWorktreeAdd() {
 	parseFlag("worktree_id")
 	wt := flag.Arg(0)
-	assert.T(!strings.HasPrefix(wt, "wt-")).Fatal("worktree_id cannot begin with wt-")
+	check.T(!strings.HasPrefix(wt, "wt-")).F("worktree_id cannot begin with wt-")
 
 	bw := fmt.Sprintf("wt-%s", wt)
 	rd := RepoDir()
@@ -1020,7 +1020,7 @@ func buildGitOps() {
 	for i := 0; i < rt.NumMethod(); i++ {
 		alias, name, fn := buildMethod(rt.Method(i))
 		_, ok := gitops[alias]
-		assert.T(!ok).Fatal("alias in use", "alias", alias)
+		check.T(!ok).F("alias in use", "alias", alias)
 		op := &GitOp{Alias: alias, Name: name, Func: fn}
 		gitops[alias] = op
 		// slog.Info("register", "op", op)
@@ -1034,7 +1034,7 @@ var nameRe = regexp.MustCompile(`[A-Z][a-z]*`)
 
 func buildMethod(m reflect.Method) (alias, name string, fn func(OpList)) {
 	mo := nameRe.FindAllString(m.Name, -1)
-	assert.T(mo != nil).Fatal("invalid op method", "name", m.Name)
+	check.T(mo != nil).F("invalid op method", "name", m.Name)
 	alias = strings.ToLower(mo[0])
 	var nn []string
 	for _, s := range mo[1:] {
@@ -1078,11 +1078,11 @@ func parseFlag(args ...string) {
 		if strings.HasPrefix(arg, "[") {
 			opt = true
 		} else {
-			assert.T(!opt).Fatal("required arg appears after optional arg", "args", args)
+			check.T(!opt).F("required arg appears after optional arg", "args", args)
 			n++
 		}
 	}
-	assert.T(n <= flag.NArg()).Fatal("missing required arg", "args", args)
+	check.T(n <= flag.NArg()).F("missing required arg", "args", args)
 }
 
 func main() {
