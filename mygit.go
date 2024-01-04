@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
-	"github.com/zncoder/check"
 	"log"
 	"os"
 	"os/exec"
@@ -15,6 +15,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/zncoder/check"
 )
 
 type OpList struct{} // placeholder to help discover methods
@@ -1053,7 +1055,15 @@ func stripCmdPrefix(s string) string {
 	return s[i+1:]
 }
 
-var progName = os.Args[0]
+func absProgName() string {
+	p, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		check.T(errors.Is(err, exec.ErrDot)).F("lookpath", "err", err, "args0", os.Args[0])
+	}
+	return check.Vp(filepath.Abs(p))
+}
+
+var progName = absProgName()
 
 func parseOp() string {
 	cmd := filepath.Base(os.Args[0])
