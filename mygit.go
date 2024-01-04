@@ -99,8 +99,7 @@ func Username() string {
 
 func MainBranch() string {
 	if mainBranch == "" {
-		s := sh("git symbolic-ref --short refs/remotes/origin/HEAD")
-		mainBranch = strings.TrimPrefix(s, "origin/")
+		mainBranch = sh(`git branch -l main master --format '%(refname:short)'`)
 	}
 	return mainBranch
 }
