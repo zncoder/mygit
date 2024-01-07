@@ -929,10 +929,9 @@ func (op OpList) GsGithubStatus() {
 			yorn("reset to %s", bm)
 			sh("git reset --hard %s --", bm)
 		default:
-			lbrs := matchLocalBranches(br, false, true)
-			rbrs := matchRemoteBranches(br, true, true)
-			yorn("delete local branches:%v and remote branches:%v", lbrs, rbrs)
-			deleteBranches(lbrs, rbrs)
+			rbrs := matchRemoteBranches("^"+br+"$", true, true)
+			yorn("delete local branch:%s and remote branches:%v", br, rbrs)
+			deleteBranches([]string{br}, rbrs)
 		}
 	}
 }
