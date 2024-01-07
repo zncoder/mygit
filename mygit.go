@@ -1000,13 +1000,15 @@ func (op OpList) createOps() {
 	}
 
 	for _, op := range gitops {
-		name := fmt.Sprintf("%s.%s", prefix, op.Alias)
-		log.Println("create", name)
-		os.Symlink(binName, name)
+		if !op.Skip {
+			name := fmt.Sprintf("%s.%s", prefix, op.Alias)
+			log.Println("create", name)
+			os.Symlink(binName, name)
+		}
 	}
 }
 
-func (op OpList) exitWithUsage() {
+func (op OpList) Help() {
 	var aliases []string
 	for _, op := range gitops {
 		aliases = append(aliases, op.Alias)
@@ -1022,6 +1024,7 @@ type GitOp struct {
 	Alias string
 	Name  string
 	Func  func(OpList)
+	Skip  bool
 }
 
 func (op *GitOp) String() string {
@@ -1041,8 +1044,7 @@ func buildGitOps() {
 		// slog.Info("register", "op", op)
 	}
 
-	gitops["create"] = &GitOp{Alias: "create", Name: "create ops", Func: OpList.createOps}
-	gitops["help"] = &GitOp{Alias: "help", Name: "help ops", Func: OpList.exitWithUsage}
+	gitops["create"] = &GitOp{Alias: "create", Name: "create ops", Func: OpList.createOps, Skip: true}
 }
 
 var nameRe = regexp.MustCompile(`[A-Z][a-z]*`)
