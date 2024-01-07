@@ -474,6 +474,14 @@ func (op OpList) MaAddFiles() {
 	sh("git add %s", quoteArgs(flag.Args(), ""))
 }
 
+func (op OpList) MpChoosePatch() {
+	parseFlag()
+	cmd := exec.Command("git", "add", "-p")
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	check.Ep(cmd.Run())
+}
+
 func quoteArgs(args []string, prefix string) string {
 	var sb strings.Builder
 	for i, arg := range args {
