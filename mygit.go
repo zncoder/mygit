@@ -676,19 +676,27 @@ func (op OpList) RsSquashToCommit() {
 
 func uncommitDeleteOrSquash(action string) {
 	parseFlag("[n_commits_or_commit]")
-	cm := parseNumCommitsOrCommit(action == "squash")
+	cm, one := parseNumCommitsOrCommit(action == "squash")
 	start := sh("git rev-parse --short %s", cm)
 	end := sh("git rev-parse --short %s", CurBranch())
 
 	switch action {
 	case "uncommit":
-		yorn("undo commits [%s..%s]", start, end)
+		if one {
+			log.Printf("undo commits [%s..%s]", start, end)
+		} else {
+			yorn("undo commits [%s..%s]", start, end)
+		}
 		sh("git reset --mixed %s~", cm)
 	case "delete":
 		yorn("delete commits [%s..%s]", start, end)
 		sh("git reset --hard %s~", cm)
 	case "squash":
-		yorn("squash commits [%s..%s]", start, end)
+		if one {
+			log.Printf("squash commits [%s..%s]", start, end)
+		} else {
+			yorn("squash commits [%s..%s]", start, end)
+		}
 		msg := sh("git show -s --format=%B " + cm) // cannot format because of %B
 		sh("git reset --soft %s~", cm)
 		sh(`git commit -m '%s'`, msg)
@@ -697,22 +705,22 @@ func uncommitDeleteOrSquash(action string) {
 	}
 }
 
-func parseNumCommitsOrCommit(squash bool) string {
+func parseNumCommitsOrCommit(squash bool) (string, bool) {
 	if flag.NArg() == 0 {
 		if squash {
-			return "HEAD~1"
+			return "HEAD~1", true
 		}
-		return "HEAD"
+		return "HEAD", true
 	}
 	n, err := strconv.Atoi(flag.Arg(0))
 	if err != nil {
-		return flag.Arg(0)
+		return flag.Arg(0), false
 	}
 	check.T(n > 0 && n <= 9 && (n != 1 || !squash)).F("invalid n_commits", "n", n)
 	if n == 1 {
-		return "HEAD"
+		return "HEAD", true
 	}
-	return fmt.Sprintf("HEAD~%d", n-1)
+	return fmt.Sprintf("HEAD~%d", n-1), false
 }
 
 func (op OpList) RtResetToCommit() {
