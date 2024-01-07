@@ -436,10 +436,9 @@ func isStaged() bool {
 
 func (op OpList) MrDiscardModified() {
 	parseFlag("file...")
-	var s string
-	for _, f := range flag.Args() {
-		s += fmt.Sprintf(`"%s" `, f)
-	}
+	s := quoteArgs(flag.Args(), "")
+	matched := sh("git ls-files -m %s", s)
+	yorn("discard modified: %s", strings.Replace(matched, "\n", " ", -1))
 	sh("git checkout %s", s)
 }
 
