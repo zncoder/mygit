@@ -54,7 +54,7 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 	if *verbose {
 		c.Stderr = os.Stderr
 	}
-	b := check.V(c.Output()).I(ignoreErr).F("run", "args", c.Args[2])
+	b := check.V(c.Output()).S(ignoreErr).F("run", "args", c.Args[2])
 	return string(bytes.TrimSpace(b))
 }
 
@@ -91,7 +91,7 @@ func CurBranch() string {
 
 func Username() string {
 	if username == "" {
-		u := check.Vp(user.Current())
+		u := check.V(user.Current()).P()
 		username = u.Username
 	}
 	return username
@@ -206,7 +206,7 @@ func pullMain() {
 	bc := CurBranch()
 	bm := MainBranch()
 	br := RepoBranch()
-	wd := check.Vp(os.Getwd())
+	wd := check.V(os.Getwd()).P()
 	onWt := br != bm
 	if onWt {
 		mwd := MainWorktreeDir()
@@ -357,7 +357,7 @@ func yorn(s string, args ...any) {
 	}
 	fmt.Print(s + " ([y]/n)?: ")
 	b := make([]byte, 2)
-	n := check.Vp(os.Stdin.Read(b))
+	n := check.V(os.Stdin.Read(b)).P()
 	check.T(n <= 1 || b[0] == 'y').F("aborted")
 }
 
@@ -479,7 +479,7 @@ func (op OpList) MpChoosePatch() {
 	cmd := exec.Command("git", "add", "-p")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
-	check.Ep(cmd.Run())
+	check.E(cmd.Run()).P()
 }
 
 func quoteArgs(args []string, prefix string) string {
@@ -1075,7 +1075,7 @@ func absProgName() string {
 	if err != nil {
 		check.T(errors.Is(err, exec.ErrDot)).F("lookpath", "err", err, "args0", os.Args[0])
 	}
-	return check.Vp(filepath.Abs(p))
+	return check.V(filepath.Abs(p)).P()
 }
 
 var progName = absProgName()
