@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/zncoder/check"
+	"github.com/zncoder/mygo"
 )
 
 type OpList struct{} // placeholder to help discover methods
@@ -50,11 +51,9 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 	if *verbose {
 		log.Println(s)
 	}
-	c := exec.Command("/bin/sh", "-c", s)
-	if *verbose {
-		c.Stderr = os.Stderr
-	}
-	b := check.V(c.Output()).S(ignoreErr).F("run", "args", c.Args[2])
+
+	c := mygo.NewCmd("/bin/sh", "-c", s).Silent(!*verbose)
+	b := check.V(c.Stdout()).S(ignoreErr).F("run", "cmd", s)
 	return string(bytes.TrimSpace(b))
 }
 
@@ -476,10 +475,8 @@ func (op OpList) MaAddFiles() {
 
 func (op OpList) MpChoosePatch() {
 	parseFlag()
-	cmd := exec.Command("git", "add", "-p")
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	check.E(cmd.Run()).P()
+	c := mygo.NewCmd("git", "add", "-p")
+	check.E(c.Interactive()).F()
 }
 
 func quoteArgs(args []string, prefix string) string {
