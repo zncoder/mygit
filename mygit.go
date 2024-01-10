@@ -937,7 +937,7 @@ func (op OpList) GsGithubStatus() {
 	}
 
 	state := prState(br)
-	if state == "MERGED" {
+	if state == "MERGED" || state == "" {
 		switch br {
 		case bm, rb:
 			fmt.Println(state)
