@@ -294,6 +294,25 @@ func (op OpList) BnNewBranch() {
 	}
 }
 
+func (op OpList) BmRenameBranch() {
+	parseFlag("branch_name")
+	br := flag.Arg(0)
+	check.T(!strings.Contains(br, "/")).F("branch name cannot contain `/`", "branch", br)
+	br = fmt.Sprintf("%s/%s", Username(), br)
+
+	bc, bm, rb := CurBranch(), MainBranch(), RepoBranch()
+	check.T(bc != bm && bc != rb).F("cannot rename main or repo branch")
+
+	ps := prState(bc)
+	check.T(ps == "MERGED").F("cannot rename branch with open pr", "state", ps, "branch", bc)
+	pullMain()
+	log.Printf("create branch:%s", br)
+	sh("git checkout -b %s %s", br, bm)
+	cm := sh("git rev-parse --short %s", bc)
+	log.Printf("delete branch:%s [%s]", bc, cm)
+	deleteBranches([]string{bc}, []string{})
+}
+
 func (op OpList) BrTrackRemoteBranch() {
 	parseFlag()
 	bc := CurBranch()
@@ -923,6 +942,7 @@ func (op OpList) GsGithubStatus() {
 		case bm, rb:
 			fmt.Println(state)
 		case bc:
+			pullMain()
 			yorn("reset to %s", bm)
 			sh("git reset --hard %s --", bm)
 		default:
