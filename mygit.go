@@ -923,7 +923,7 @@ func (op OpList) GpGithubThisPullrequest() {
 func (op OpList) GsGithubStatus() {
 	parseFlag("[branch_re_or_dot]")
 	if flag.NArg() == 0 {
-		fmt.Println("gh pr status")
+		fmt.Println(sh("gh pr status"))
 		return
 	}
 
