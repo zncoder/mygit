@@ -227,11 +227,11 @@ func pullMain() {
 		os.Chdir(wd)
 	}
 	if bc != br {
-		log.Printf("switch to worktree: %s", br)
+		log.Printf("switch to repo branch: %s", br)
 		checkoutBranch(br, false)
-		log.Printf("pull in %s", br)
-		sh("git rebase %s", bm)
 	}
+	log.Printf("pull in %s", br)
+	sh("git rebase %s", bm)
 
 	if bc != bm || bc != br {
 		checkoutBranch(bc, false)
@@ -616,6 +616,7 @@ func (op OpList) RaRebaseAbort() {
 
 func (op OpList) RrRebase() {
 	parseFlag("[branch_re]")
+	bc := CurBranch()
 	var br string
 	if flag.NArg() == 0 {
 		pullMain()
@@ -623,7 +624,9 @@ func (op OpList) RrRebase() {
 	} else {
 		br = localBranch(flag.Arg(0), true)
 	}
-	sh("git rebase %s", br)
+	if bc != br {
+		sh("git rebase %s", br)
+	}
 	revertEmacsBuffers()
 }
 
@@ -638,11 +641,11 @@ func (op OpList) RbRebaseBackOnto() {
 	} else {
 		onto = localBranch(flag.Arg(0), true)
 	}
-	deleteTmpBranch()
 
+	deleteTmpBranch(false)
 	bc := CurBranch()
 	bcTmp := bc + tmpSuffix
-	sh("git branch %s HEAD~{%d}", bcTmp, *numCommits)
+	sh("git branch %s HEAD~%d", bcTmp, *numCommits)
 	sh("git rebase --onto %s %s %s", onto, bcTmp, bc)
 	sh("git branch -D %s", bcTmp)
 	if *revert {
@@ -653,11 +656,16 @@ func (op OpList) RbRebaseBackOnto() {
 		resetGithubBase(onto)
 		sh("git push -f origin HEAD:%s", bc)
 	}
+
+	deleteTmpBranch(true)
 }
 
-func deleteTmpBranch() {
+func deleteTmpBranch(remote bool) {
 	lbrs := matchLocalBranches(tmpSuffix, false, true)
-	rbrs := matchRemoteBranches(tmpSuffix, true, true)
+	var rbrs []string
+	if remote {
+		rbrs = matchRemoteBranches(tmpSuffix, true, true)
+	}
 	deleteBranches(lbrs, rbrs)
 }
 
@@ -988,7 +996,7 @@ func (op OpList) IHead() {
 		return
 	}
 	if br == "HEAD" {
-		br = sh("git rev-parse --short HEAD")
+		br = shQ("git rev-parse --short HEAD")
 	}
 	fmt.Print(br)
 }
