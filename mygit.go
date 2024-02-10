@@ -2,17 +2,13 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
-	"reflect"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -238,9 +234,9 @@ func pullMain() {
 	}
 }
 
-func (op OpList) BoCheckoutLocalBranch() {
+func (OpList) BO_CheckoutLocalBranch() {
 	revertBuf := flag.Bool("r", false, "revert emacs buffers")
-	parseFlag("[branch_re]")
+	mygo.ParseFlag("[branch_re]")
 
 	var br string
 	if flag.NArg() == 0 {
@@ -255,8 +251,8 @@ func (op OpList) BoCheckoutLocalBranch() {
 	checkoutBranch(br, *revertBuf)
 }
 
-func (op OpList) BcCheckoutCommit() {
-	parseFlag("commit_or_tag")
+func (OpList) BC_CheckoutCommit() {
+	mygo.ParseFlag("commit_or_tag")
 	cot := flag.Arg(0)
 	if isCommit(cot) {
 		sh("git checkout --detach %s", cot)
@@ -265,14 +261,14 @@ func (op OpList) BcCheckoutCommit() {
 	}
 }
 
-func (op OpList) BtCheckoutAndTrackRemoteBranch() {
-	parseFlag("remote_branch_re")
+func (OpList) BT_CheckoutAndTrackRemoteBranch() {
+	mygo.ParseFlag("remote_branch_re")
 	br := remoteBranch(flag.Arg(0))
 	sh("git checkout -b %s --track origin/%s", br, br)
 }
 
-func (op OpList) BnNewBranch() {
-	parseFlag("branch_name", "[base_branch_re_or_dot]")
+func (OpList) BN_NewBranch() {
+	mygo.ParseFlag("branch_name", "[base_branch_re_or_dot]")
 
 	br := flag.Arg(0)
 	check.T(!strings.Contains(br, "/")).F("branch name cannot contain `/`", "branch", br)
@@ -294,8 +290,8 @@ func (op OpList) BnNewBranch() {
 	}
 }
 
-func (op OpList) BmRenameBranch() {
-	parseFlag("branch_name")
+func (OpList) BM_RenameBranch() {
+	mygo.ParseFlag("branch_name")
 	br := flag.Arg(0)
 	check.T(!strings.Contains(br, "/")).F("branch name cannot contain `/`", "branch", br)
 	br = fmt.Sprintf("%s/%s", Username(), br)
@@ -313,17 +309,17 @@ func (op OpList) BmRenameBranch() {
 	deleteBranches([]string{bc}, []string{})
 }
 
-func (op OpList) BrTrackRemoteBranch() {
-	parseFlag()
+func (OpList) BR_TrackRemoteBranch() {
+	mygo.ParseFlag()
 	bc := CurBranch()
 	br := remoteBranch(bc)
 	check.T(bc == br).F("remote branch mismatch", "current", bc, "remote", br)
 	sh("git branch -u origin/%s", bc)
 }
 
-func (op OpList) BdDeleteBranchLocalAndRemote() {
+func (OpList) BD_DeleteBranchLocalAndRemote() {
 	localOnly := flag.Bool("l", false, "local branch only")
-	parseFlag("branch_re_or_dot")
+	mygo.ParseFlag("branch_re_or_dot")
 	pat := flag.Arg(0)
 
 	if pat == "." {
@@ -379,18 +375,18 @@ func yorn(s string, args ...any) {
 	check.T(n <= 1 || b[0] == 'y').F("aborted")
 }
 
-func (op OpList) CaCherryPickAbort() {
-	parseFlag()
+func (OpList) CA_CherryPickAbort() {
+	mygo.ParseFlag()
 	sh("git cherry-pick --abort")
 }
 
-func (op OpList) CcCherryPickContinue() {
-	parseFlag()
+func (OpList) CC_CherryPickContinue() {
+	mygo.ParseFlag()
 	sh("git cherry-pick --continue")
 }
 
-func (op OpList) CpCherryPick() {
-	parseFlag("commit_or_branch_re")
+func (OpList) CP_CherryPick() {
+	mygo.ParseFlag("commit_or_branch_re")
 	cm := flag.Arg(0)
 
 	if !isCommit(cm) {
@@ -399,19 +395,19 @@ func (op OpList) CpCherryPick() {
 	sh("git cherry-pick %s", cm)
 }
 
-func (op OpList) PmPullMain() {
-	parseFlag()
+func (OpList) PM_PullMain() {
+	mygo.ParseFlag()
 	pullMain()
 }
 
-func (op OpList) PlPull() {
-	parseFlag()
+func (OpList) PL_Pull() {
+	mygo.ParseFlag()
 	sh("git pull --rebase")
 }
 
-func (op OpList) PsPush() {
+func (OpList) PS_Push() {
 	force := flag.Bool("f", false, "force push")
-	parseFlag()
+	mygo.ParseFlag()
 	bc := CurBranch()
 	bm := MainBranch()
 	if bc == bm {
@@ -430,12 +426,12 @@ func (op OpList) PsPush() {
 	}
 }
 
-func (op OpList) PoSubmoduleUpdate() {
+func (OpList) PO_SubmoduleUpdate() {
 	sh("git submodule update --init")
 }
 
-func (op OpList) MwWip() {
-	parseFlag()
+func (OpList) MW_Wip() {
+	mygo.ParseFlag()
 	bc := CurBranch()
 	br := RepoBranch()
 	bm := MainBranch()
@@ -452,16 +448,16 @@ func isStaged() bool {
 	return strings.TrimSpace(s) != ""
 }
 
-func (op OpList) MrDiscardModified() {
-	parseFlag("file...")
+func (OpList) MR_DiscardModified() {
+	mygo.ParseFlag("file...")
 	s := quoteArgs(flag.Args(), "")
 	matched := sh("git ls-files -m %s", s)
 	yorn("discard modified: %s", strings.Replace(matched, "\n", " ", -1))
 	sh("git checkout %s", s)
 }
 
-func (op OpList) MxClean() {
-	parseFlag()
+func (OpList) MX_Clean() {
+	mygo.ParseFlag()
 	s := sh("git ls-files --others --exclude-standard")
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -472,9 +468,9 @@ func (op OpList) MxClean() {
 	sh("git clean -f")
 }
 
-func (op OpList) McCommit() {
+func (OpList) MC_Commit() {
 	force := flag.Bool("f", false, "force commit")
-	parseFlag("commit_message...")
+	mygo.ParseFlag("commit_message...")
 	bc := CurBranch()
 	bm := MainBranch()
 	br := RepoBranch()
@@ -487,13 +483,13 @@ func (op OpList) McCommit() {
 	}
 }
 
-func (op OpList) MaAddFiles() {
-	parseFlag("file...")
+func (OpList) MA_AddFiles() {
+	mygo.ParseFlag("file...")
 	sh("git add %s", quoteArgs(flag.Args(), ""))
 }
 
-func (op OpList) MpChoosePatch() {
-	parseFlag()
+func (OpList) MP_ChoosePatch() {
+	mygo.ParseFlag()
 	c := mygo.NewCmd("git", "add", "-p")
 	check.E(c.Interactive()).F()
 }
@@ -513,30 +509,30 @@ func quoteArgs(args []string, prefix string) string {
 	return sb.String()
 }
 
-func (op OpList) MmAmendLastCommit() {
-	parseFlag("commit_message...")
+func (OpList) MM_AmendLastCommit() {
+	mygo.ParseFlag("commit_message...")
 	msg := quoteArgs(flag.Args(), "-m")
 	sh("git commit --amend %s", msg)
 }
 
-func (op OpList) MhStash() {
-	parseFlag()
+func (OpList) MH_Stash() {
+	mygo.ParseFlag()
 	sh("git stash")
 }
 
-func (op OpList) MsPopStash() {
-	parseFlag()
+func (OpList) MS_PopStash() {
+	mygo.ParseFlag()
 	sh("git stash pop")
 }
 
-func (op OpList) MuUnstage() {
-	parseFlag("file...")
+func (OpList) MU_Unstage() {
+	mygo.ParseFlag("file...")
 	sh("git restore --staged %s", quoteArgs(flag.Args(), ""))
 }
 
-func (op OpList) DfDiff() {
+func (OpList) DF_Diff() {
 	cached := flag.Bool("c", false, "cached")
-	parseFlag("[diff_arg]")
+	mygo.ParseFlag("[diff_arg]")
 	args := diffArgs(*cached, "", flag.Args())
 	fmt.Println(sh("git diff %s", args))
 }
@@ -560,17 +556,17 @@ func diffArgs(cached bool, difftool string, args []string) string {
 	return sb.String()
 }
 
-func (op OpList) DgGuiDiff() {
+func (OpList) DG_GuiDiff() {
 	cached := flag.Bool("c", false, "cached")
-	parseFlag("[diff_arg]")
+	mygo.ParseFlag("[diff_arg]")
 	sh("git difftool %s", diffArgs(*cached, "difftool", flag.Args()))
 
 	shQ("tabfilemerge.sh")
 }
 
-func (op OpList) DeEdiff() {
+func (OpList) DE_Ediff() {
 	cached := flag.Bool("c", false, "cached")
-	parseFlag("[diff_arg_or_^]")
+	mygo.ParseFlag("[diff_arg_or_^]")
 	var args []string
 	if flag.NArg() == 1 && flag.Arg(0) == "^" {
 		args = []string{"HEAD~"}
@@ -580,9 +576,9 @@ func (op OpList) DeEdiff() {
 	sh("git difftool %s", diffArgs(*cached, "ediff", args))
 }
 
-func (op OpList) DcGuiDiffCommit() {
+func (OpList) DC_GuiDiffCommit() {
 	cached := flag.Bool("c", false, "cached")
-	parseFlag("[commit]")
+	mygo.ParseFlag("[commit]")
 	cm := "HEAD"
 	if flag.NArg() > 0 {
 		cm = flag.Arg(0)
@@ -594,8 +590,8 @@ func (op OpList) DcGuiDiffCommit() {
 	sh("git difftool %s", diffArgs(*cached, "difftool", args))
 }
 
-func (op OpList) RiRebaseInteractive() {
-	parseFlag("branch_re")
+func (OpList) RI_RebaseInteractive() {
+	mygo.ParseFlag("branch_re")
 	cm := flag.Arg(0)
 	if !strings.Contains(cm, "~") && !strings.Contains(cm, "^") && !isCommit(cm) {
 		cm = localBranch(cm, true)
@@ -604,18 +600,18 @@ func (op OpList) RiRebaseInteractive() {
 	revertEmacsBuffers()
 }
 
-func (op OpList) RcRebaseCont() {
-	parseFlag()
+func (OpList) RC_RebaseCont() {
+	mygo.ParseFlag()
 	sh("git add")
 	sh("git rebase --continue")
 }
 
-func (op OpList) RaRebaseAbort() {
+func (OpList) RA_RebaseAbort() {
 	sh("git rebase --abort")
 }
 
-func (op OpList) RrRebase() {
-	parseFlag("[branch_re]")
+func (OpList) RR_Rebase() {
+	mygo.ParseFlag("[branch_re]")
 	bc := CurBranch()
 	var br string
 	if flag.NArg() == 0 {
@@ -630,10 +626,10 @@ func (op OpList) RrRebase() {
 	revertEmacsBuffers()
 }
 
-func (op OpList) RbRebaseBackOnto() {
+func (OpList) RB_RebaseBackOnto() {
 	numCommits := flag.Int("n", 1, "number of commits to keep")
 	revert := flag.Bool("r", false, "revert emacs buffers")
-	parseFlag("[branch_re]")
+	mygo.ParseFlag("[branch_re]")
 	var onto string
 	if flag.NArg() == 0 {
 		onto = MainBranch()
@@ -686,20 +682,20 @@ func resetGithubBase(bb string) {
 	}
 }
 
-func (op OpList) RuUncommits() {
+func (OpList) RU_Uncommits() {
 	uncommitDeleteOrSquash("uncommit")
 }
 
-func (op OpList) RdDeleteCommits() {
+func (OpList) RD_DeleteCommits() {
 	uncommitDeleteOrSquash("delete")
 }
 
-func (op OpList) RsSquashToCommit() {
+func (OpList) RS_SquashToCommit() {
 	uncommitDeleteOrSquash("squash")
 }
 
 func uncommitDeleteOrSquash(action string) {
-	parseFlag("[n_commits_or_commit]")
+	mygo.ParseFlag("[n_commits_or_commit]")
 	cm, one := parseNumCommitsOrCommit(action == "squash")
 	start := sh("git rev-parse --short %s", cm)
 	end := sh("git rev-parse --short %s", CurBranch())
@@ -747,8 +743,8 @@ func parseNumCommitsOrCommit(squash bool) (string, bool) {
 	return fmt.Sprintf("HEAD~%d", n-1), false
 }
 
-func (op OpList) RtResetToCommit() {
-	parseFlag("[branch_re]")
+func (OpList) RT_ResetToCommit() {
+	mygo.ParseFlag("[branch_re]")
 	var br string
 	if flag.NArg() > 0 {
 		br = localBranch(flag.Arg(0), true)
@@ -761,8 +757,8 @@ func (op OpList) RtResetToCommit() {
 
 var prInTitleRe = regexp.MustCompile(`\(#[0-9]+\)$`)
 
-func (op OpList) SShowStatusLocalBranches() {
-	parseFlag()
+func (OpList) S_ShowStatusLocalBranches() {
+	mygo.ParseFlag()
 
 	var sb strings.Builder
 	sep := "================"
@@ -799,15 +795,15 @@ func (op OpList) SShowStatusLocalBranches() {
 	fmt.Print(&sb)
 }
 
-func (op OpList) ScShowCommitSummary() {
-	parseFlag("[commit]")
+func (OpList) SC_ShowCommitSummary() {
+	mygo.ParseFlag("[commit]")
 	s := sh("git show --name-only %s", quoteArgs(flag.Args(), ""))
 	fmt.Println(s)
 }
 
-func (op OpList) SlListCommits() {
+func (OpList) SL_ListCommits() {
 	remote := flag.Bool("r", false, "remote branch")
-	parseFlag("[branch_re]", "[n_commits]")
+	mygo.ParseFlag("[branch_re]", "[n_commits]")
 
 	var pat string
 	num := 3
@@ -834,8 +830,8 @@ func (op OpList) SlListCommits() {
 	fmt.Println(s)
 }
 
-func (op OpList) SrListRemoteBranches() {
-	parseFlag("[branch_re]")
+func (OpList) SR_ListRemoteBranches() {
+	mygo.ParseFlag("[branch_re]")
 
 	pat := ".*"
 	if flag.NArg() > 0 {
@@ -847,8 +843,8 @@ func (op OpList) SrListRemoteBranches() {
 	}
 }
 
-func (op OpList) SvShowFileAtVersion() {
-	parseFlag("branch_re_or_commit", "file")
+func (OpList) SV_ShowFileAtVersion() {
+	mygo.ParseFlag("branch_re_or_commit", "file")
 	cm, filename := flag.Arg(0), flag.Arg(1)
 	if _, err := os.Stat(filename); err != nil {
 		cm, filename = filename, cm
@@ -868,16 +864,16 @@ func (op OpList) SvShowFileAtVersion() {
 	fmt.Println(s)
 }
 
-func (op OpList) GhGithubPrStatus() {
-	parseFlag()
+func (OpList) GH_GithubPrStatus() {
+	mygo.ParseFlag()
 	s := shQ("gh pr status")
 	fmt.Println(s)
 }
 
-func (op OpList) GtGithubPrDraft() {
+func (OpList) GT_GithubPrDraft() {
 	draft := flag.Bool("w", false, "draft pr")
 	silent := flag.Bool("s", false, "don't open browser")
-	parseFlag("[branch_re_or_commit]")
+	mygo.ParseFlag("[branch_re_or_commit]")
 	var bb string
 	if flag.NArg() > 0 {
 		bb = flag.Arg(0)
@@ -915,8 +911,8 @@ func showPR(br string) {
 	shQ(`open "%s"`, url)
 }
 
-func (op OpList) GpGithubThisPullrequest() {
-	parseFlag("[branch_re_or_pr]")
+func (OpList) GP_GithubThisPullrequest() {
+	mygo.ParseFlag("[branch_re_or_pr]")
 	var br string
 	if flag.NArg() > 0 {
 		br = flag.Arg(0)
@@ -928,8 +924,8 @@ func (op OpList) GpGithubThisPullrequest() {
 	showPR(br)
 }
 
-func (op OpList) GsGithubStatus() {
-	parseFlag("[branch_re_or_dot]")
+func (OpList) GS_GithubStatus() {
+	mygo.ParseFlag("[branch_re_or_dot]")
 	if flag.NArg() == 0 {
 		fmt.Println(sh("gh pr status"))
 		return
@@ -961,8 +957,8 @@ func (op OpList) GsGithubStatus() {
 	}
 }
 
-func (op OpList) WnWorktreeAdd() {
-	parseFlag("worktree_id")
+func (OpList) WN_WorktreeAdd() {
+	mygo.ParseFlag("worktree_id")
 	wt := flag.Arg(0)
 	check.T(!strings.HasPrefix(wt, "wt-")).F("worktree_id cannot begin with wt-")
 
@@ -973,12 +969,12 @@ func (op OpList) WnWorktreeAdd() {
 	log.Printf("worktree %q is created at %q", bw, wd)
 }
 
-func (op OpList) WlWorktreeList() {
+func (OpList) WL_WorktreeList() {
 	fmt.Println(sh("git worktree list"))
 }
 
-func (op OpList) WdWorktreeRemove() {
-	parseFlag("worktree_id")
+func (OpList) WD_WorktreeRemove() {
+	mygo.ParseFlag("worktree_id")
 	wt := flag.Arg(0)
 
 	bw := fmt.Sprintf("wt-%s", wt)
@@ -989,8 +985,8 @@ func (op OpList) WdWorktreeRemove() {
 	log.Printf("worktree %q at %q is deleted", bw, wd)
 }
 
-func (op OpList) IHead() {
-	parseFlag()
+func (OpList) I_Head() {
+	mygo.ParseFlag()
 	br := shQ("git rev-parse --abbrev-ref HEAD")
 	if br == "" {
 		return
@@ -1001,91 +997,12 @@ func (op OpList) IHead() {
 	fmt.Print(br)
 }
 
-func (op OpList) RepoShowRepoName() {
-	parseFlag()
+func (OpList) REPO_ShowRepoName() {
+	mygo.ParseFlag()
 	fmt.Print(filepath.Base(RepoDir()))
 }
 
-func (op OpList) createOps() {
-	cleanOnly := flag.Bool("c", false, "clean only")
-	parseFlag("prefix")
-	prefix := flag.Arg(0)
-
-	binDir, binName := filepath.Split(progName)
-	os.Chdir(binDir)
-
-	cmds, _ := filepath.Glob(fmt.Sprintf("%s.*", prefix))
-	for _, c := range cmds {
-		if st, err := os.Lstat(c); err == nil && st.Mode()&os.ModeSymlink != 0 {
-			os.Remove(c)
-		}
-	}
-	if *cleanOnly {
-		return
-	}
-
-	for _, op := range gitops {
-		if !op.Skip {
-			name := fmt.Sprintf("%s.%s", prefix, op.Alias)
-			log.Println("create", name)
-			os.Symlink(binName, name)
-		}
-	}
-}
-
-func (op OpList) Help() {
-	var aliases []string
-	for _, op := range gitops {
-		aliases = append(aliases, op.Alias)
-	}
-	slices.Sort(aliases)
-
-	for _, alias := range aliases {
-		fmt.Printf("%s => %s\n", alias, gitops[alias].Name)
-	}
-}
-
-type GitOp struct {
-	Alias string
-	Name  string
-	Func  func(OpList)
-	Skip  bool
-}
-
-func (op *GitOp) String() string {
-	return fmt.Sprintf("%s => %s", op.Alias, op.Name)
-}
-
-var gitops = make(map[string]*GitOp)
-
-func buildGitOps() {
-	rt := reflect.TypeOf(OpList{})
-	for i := 0; i < rt.NumMethod(); i++ {
-		alias, name, fn := buildMethod(rt.Method(i))
-		_, ok := gitops[alias]
-		check.T(!ok).F("alias in use", "alias", alias)
-		op := &GitOp{Alias: alias, Name: name, Func: fn}
-		gitops[alias] = op
-		// slog.Info("register", "op", op)
-	}
-
-	gitops["create"] = &GitOp{Alias: "create", Name: "create ops", Func: OpList.createOps, Skip: true}
-}
-
-var nameRe = regexp.MustCompile(`[A-Z][a-z]*`)
-
-func buildMethod(m reflect.Method) (alias, name string, fn func(OpList)) {
-	mo := nameRe.FindAllString(m.Name, -1)
-	check.T(mo != nil).F("invalid op method", "name", m.Name)
-	alias = strings.ToLower(mo[0])
-	var nn []string
-	for _, s := range mo[1:] {
-		nn = append(nn, strings.ToLower(s))
-	}
-	name = strings.Join(nn, " ")
-	fn = m.Func.Interface().(func(OpList))
-	return alias, name, fn
-}
+var gitops mygo.OPMap
 
 func stripCmdPrefix(s string) string {
 	i := strings.Index(s, ".")
@@ -1094,16 +1011,6 @@ func stripCmdPrefix(s string) string {
 	}
 	return s[i+1:]
 }
-
-func absProgName() string {
-	p, err := exec.LookPath(os.Args[0])
-	if err != nil {
-		check.T(errors.Is(err, exec.ErrDot)).F("lookpath", "err", err, "args0", os.Args[0])
-	}
-	return check.V(filepath.Abs(p)).P()
-}
-
-var progName = absProgName()
 
 func parseOp() string {
 	cmd := filepath.Base(os.Args[0])
@@ -1115,38 +1022,14 @@ func parseOp() string {
 	}
 }
 
-func parseFlag(args ...string) {
-	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s %s\n", os.Args[0], strings.Join(args, " "))
-		flag.PrintDefaults()
-	}
-	flag.Parse()
-
-	var n int
-	var opt bool
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "[") {
-			opt = true
-		} else {
-			check.T(!opt).F("required arg appears after optional arg", "args", args)
-			n++
-		}
-	}
-	check.T(n <= flag.NArg()).F("missing required arg", "args", args)
-}
-
 func main() {
 	// mygit op arg...
 	// when op alias is defined, <prefix>.<alias>arg...
-	buildGitOps()
+	gitops = mygo.BuildOPMap[OpList]()
 
 	log.SetFlags(0)
 	log.SetPrefix("# ")
 
 	alias := parseOp()
-	op, ok := gitops[alias]
-	if !ok {
-		op = gitops["help"]
-	}
-	op.Func(OpList{})
+	gitops.Run(alias)
 }
