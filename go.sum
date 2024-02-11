@@ -1,10 +1,4 @@
 github.com/zncoder/check v0.0.0-20240210205527-4e0f4a01e373 h1:HGhDpeCRLikiYP5EXPMTRBQ2jee+vQF83j4xPnQAlbk=
 github.com/zncoder/check v0.0.0-20240210205527-4e0f4a01e373/go.mod h1:dee1ljbNl8dSrDgTCj3OOfAL5MbG2u4y28MtOlpzJUQ=
-github.com/zncoder/mygo v0.0.0-20240210234840-d3130306ea16 h1:ACTFukXEWnyEKwGFan9ZlARB1fAC5mLpX5yeG6EUynU=
-github.com/zncoder/mygo v0.0.0-20240210234840-d3130306ea16/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=
-github.com/zncoder/mygo v0.0.0-20240211001502-9eac26344b4b h1:/HzojKLvQqSEtT0LV/eHK4cUe3JLbzExd/kf6ZLc0E4=
-github.com/zncoder/mygo v0.0.0-20240211001502-9eac26344b4b/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=
-github.com/zncoder/mygo v0.0.0-20240211035207-ffa4d4146541 h1:IOaWfNYwFB3hp8uWBIs1Q7A3at/mD5sbey6TSt0pkCc=
-github.com/zncoder/mygo v0.0.0-20240211035207-ffa4d4146541/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=
 github.com/zncoder/mygo v0.0.0-20240211040149-27e24f9aedf5 h1:4wLhLjZJiKXpVmQIwrJ6qXKRGmM914qk8rsmoTmZMuY=
 github.com/zncoder/mygo v0.0.0-20240211040149-27e24f9aedf5/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=

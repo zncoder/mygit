@@ -48,7 +48,7 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 		log.Println(s)
 	}
 
-	c := mygo.NewCmd("/bin/sh", "-c", s).IgnoreErr(ignoreErr)
+	c := mygo.NewCmd("/bin/sh", "-c", s).Silent(!*verbose).IgnoreErr(ignoreErr)
 	return string(bytes.TrimSpace(c.Stdout()))
 }
 
