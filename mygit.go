@@ -48,9 +48,8 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 		log.Println(s)
 	}
 
-	c := mygo.NewCmd("/bin/sh", "-c", s).Silent(!*verbose)
-	b := check.V(c.Stdout()).S(ignoreErr).F("run", "cmd", s)
-	return string(bytes.TrimSpace(b))
+	c := mygo.NewCmd("/bin/sh", "-c", s).IgnoreErr(ignoreErr)
+	return string(bytes.TrimSpace(c.Stdout()))
 }
 
 var (
@@ -490,8 +489,7 @@ func (OpList) MA_AddFiles() {
 
 func (OpList) MP_ChoosePatch() {
 	mygo.ParseFlag()
-	c := mygo.NewCmd("git", "add", "-p")
-	check.E(c.Interactive()).F()
+	mygo.NewCmd("git", "add", "-p").Interactive()
 }
 
 func quoteArgs(args []string, prefix string) string {
