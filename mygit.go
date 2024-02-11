@@ -1004,32 +1004,10 @@ func (OpList) REPO_ShowRepoName() {
 
 var gitops mygo.OPMap
 
-func stripCmdPrefix(s string) string {
-	i := strings.Index(s, ".")
-	if i < 0 {
-		return s
-	}
-	return s[i+1:]
-}
-
-func parseOp() string {
-	cmd := filepath.Base(os.Args[0])
-	if cmd == "mygit" {
-		os.Args = os.Args[1:]
-		return os.Args[0]
-	} else {
-		return stripCmdPrefix(cmd)
-	}
-}
-
 func main() {
-	// mygit op arg...
-	// when op alias is defined, <prefix>.<alias>arg...
-	gitops = mygo.BuildOPMap[OpList]()
-
 	log.SetFlags(0)
 	log.SetPrefix("# ")
 
-	alias := parseOp()
-	gitops.Run(alias)
+	gitops = mygo.BuildOPMap[OpList]()
+	gitops.RunCmd()
 }
