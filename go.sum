@@ -2,3 +2,5 @@ github.com/zncoder/check v0.0.0-20240210205527-4e0f4a01e373 h1:HGhDpeCRLikiYP5EX
 github.com/zncoder/check v0.0.0-20240210205527-4e0f4a01e373/go.mod h1:dee1ljbNl8dSrDgTCj3OOfAL5MbG2u4y28MtOlpzJUQ=
 github.com/zncoder/mygo v0.0.0-20240211040149-27e24f9aedf5 h1:4wLhLjZJiKXpVmQIwrJ6qXKRGmM914qk8rsmoTmZMuY=
 github.com/zncoder/mygo v0.0.0-20240211040149-27e24f9aedf5/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=
+github.com/zncoder/mygo v0.0.0-20240216222108-230d6b2b9d11 h1:gqApy77cf9SWR5MSMLHF96qjISjk4cld4mKXgL39vQE=
+github.com/zncoder/mygo v0.0.0-20240216222108-230d6b2b9d11/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=

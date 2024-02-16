@@ -85,7 +85,7 @@ func CurBranch() string {
 
 func Username() string {
 	if username == "" {
-		u := check.V(user.Current()).P()
+		u := check.V(user.Current()).F("username")
 		username = u.Username
 	}
 	return username
@@ -200,7 +200,7 @@ func pullMain() {
 	bc := CurBranch()
 	bm := MainBranch()
 	br := RepoBranch()
-	wd := check.V(os.Getwd()).P()
+	wd := check.V(os.Getwd()).F("getwd")
 	onWt := br != bm
 	if onWt {
 		mwd := MainWorktreeDir()
@@ -370,7 +370,7 @@ func yorn(s string, args ...any) {
 	}
 	fmt.Print(s + " ([y]/n)?: ")
 	b := make([]byte, 2)
-	n := check.V(os.Stdin.Read(b)).P()
+	n := check.V(os.Stdin.Read(b)).F("read stdin")
 	check.T(n <= 1 || b[0] == 'y').F("aborted")
 }
 
