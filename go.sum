@@ -4,3 +4,5 @@ github.com/zncoder/mygo v0.0.0-20240211040149-27e24f9aedf5 h1:4wLhLjZJiKXpVmQIwr
 github.com/zncoder/mygo v0.0.0-20240211040149-27e24f9aedf5/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=
 github.com/zncoder/mygo v0.0.0-20240216222108-230d6b2b9d11 h1:gqApy77cf9SWR5MSMLHF96qjISjk4cld4mKXgL39vQE=
 github.com/zncoder/mygo v0.0.0-20240216222108-230d6b2b9d11/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=
+github.com/zncoder/mygo v0.0.0-20240218015325-5ed40863ea81 h1:Wxfj2bTgCnuDaWzMpVxkA9+kmIflGJ3bcEHVEKjhoxM=
+github.com/zncoder/mygo v0.0.0-20240218015325-5ed40863ea81/go.mod h1:J7Oj8MFgjGDuTw7aEn2MMKCcGKMqE+DYOX1Z0xYC7yg=

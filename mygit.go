@@ -407,17 +407,27 @@ func (OpList) PL_Pull() {
 func (OpList) PS_Push() {
 	force := flag.Bool("f", false, "force push")
 	mygo.ParseFlag()
+
 	bc := CurBranch()
 	bm := MainBranch()
 	if bc == bm {
-		check.T(*force).F("cannot force push to main")
-		s := sh("git log --oneline origin/%s..%s", bm, bm)
+		check.T(*force).F("cannot push to main")
+
+		var s string
+		c := mygo.NewCmd("git", "ls-remote", "--exit-code", "--heads", "origin", "refs/heads/"+bm)
+		if c.RunWithExitCode() == 0 {
+			s = sh("git log --oneline origin/%s..%s", bm, bm)
+		} else {
+			s = sh("git log --oneline")
+		}
+
 		lns := strings.Split(s, "\n")
 		for _, ln := range lns {
 			ln := strings.ToLower(strings.TrimSpace(ln))
-			check.T(!strings.HasSuffix(ln, "wip") && !strings.Contains(ln, " wip ")).F("cannot push wip commit to main")
+			check.T(!strings.HasSuffix(ln, "wip") && !strings.Contains(ln, " wip ")).F("cannot push wip to main")
 		}
 	}
+
 	if *force {
 		sh("git push -f origin HEAD:%s", bc)
 	} else {
@@ -470,10 +480,13 @@ func (OpList) MX_Clean() {
 func (OpList) MC_Commit() {
 	force := flag.Bool("f", false, "force commit")
 	mygo.ParseFlag("commit_message...")
-	bc := CurBranch()
-	bm := MainBranch()
-	br := RepoBranch()
-	check.T(*force || (bc != bm && bc != br)).F("cannot commit to default branch", "main", bm, "repo", br)
+
+	if !*force {
+		bc := CurBranch()
+		bm := MainBranch()
+		br := RepoBranch()
+		check.T(bc != bm && bc != br).F("cannot commit to default branch", "main", bm, "repo", br)
+	}
 	msg := quoteArgs(flag.Args(), "-m")
 	if isStaged() {
 		sh("git commit %s", msg)
