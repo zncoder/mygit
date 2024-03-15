@@ -394,11 +394,6 @@ func (OpList) CP_CherryPick() {
 	sh("git cherry-pick %s", cm)
 }
 
-func (OpList) PM_PullMain() {
-	mygo.ParseFlag()
-	pullMain()
-}
-
 func (OpList) PL_Pull() {
 	mygo.ParseFlag()
 	sh("git pull --rebase")
@@ -754,11 +749,14 @@ func parseNumCommitsOrCommit(squash bool) (string, bool) {
 	return fmt.Sprintf("HEAD~%d", n-1), false
 }
 
-func (OpList) RT_ResetToCommit() {
-	mygo.ParseFlag("[branch_re]")
+func (OpList) RT_ResetToBranchOrCommit() {
+	mygo.ParseFlag("[branch_re_or_commit]")
 	var br string
 	if flag.NArg() > 0 {
-		br = localBranch(flag.Arg(0), true)
+		br = flag.Arg(0)
+		if !isCommit(br) {
+			br = localBranch(br, true)
+		}
 	} else {
 		br = MainBranch()
 	}
