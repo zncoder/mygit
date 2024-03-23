@@ -643,10 +643,13 @@ func (OpList) RB_RebaseBackOnto() {
 	} else {
 		onto = localBranch(flag.Arg(0), true)
 	}
+	log.Printf("rebase onto:%s", onto)
 
-	deleteTmpBranch(false)
 	bc := CurBranch()
+	check.T(bc != onto).F("rebase to self", "onto", onto)
+
 	bcTmp := bc + tmpSuffix
+	shQ("git branch -D %s", bcTmp)
 	sh("git branch %s HEAD~%d", bcTmp, *numCommits)
 	sh("git rebase --onto %s %s %s", onto, bcTmp, bc)
 	sh("git branch -D %s", bcTmp)
@@ -658,17 +661,6 @@ func (OpList) RB_RebaseBackOnto() {
 		resetGithubBase(onto)
 		sh("git push -f origin HEAD:%s", bc)
 	}
-
-	deleteTmpBranch(true)
-}
-
-func deleteTmpBranch(remote bool) {
-	lbrs := matchLocalBranches(tmpSuffix, false, true)
-	var rbrs []string
-	if remote {
-		rbrs = matchRemoteBranches(tmpSuffix, true, true)
-	}
-	deleteBranches(lbrs, rbrs)
 }
 
 func prState(pr string) string {
