@@ -1006,6 +1006,7 @@ func (OpList) REPO_ShowRepoName() {
 var gitops mygo.OPMap
 
 func main() {
+	flag.StringVar(&username, "u", "", "username")
 	log.SetFlags(0)
 	log.SetPrefix("# ")
 
