@@ -338,7 +338,7 @@ func (OpList) BD_DeleteBranchLocalAndRemote() {
 		return
 	}
 	if !strings.HasSuffix(pat, tmpSuffix) {
-		yorn("delete local branches:%v and remote branches:%v", lbrs, rbrs)
+		mygo.Yorn("delete local branches:%v and remote branches:%v", lbrs, rbrs)
 	}
 	deleteBranches(lbrs, rbrs)
 }
@@ -358,20 +358,10 @@ func deleteThisBranch() {
 	check.T(bc != br).F("cannot delete repo branch", "repo_branch", bc)
 
 	rbrs := matchRemoteBranches(bc, true, true)
-	yorn("delete this branch:%s and remote branches:%v", bc, rbrs)
+	mygo.Yorn("delete this branch:%s and remote branches:%v", bc, rbrs)
 
 	checkoutBranch(br, true)
 	deleteBranches([]string{bc}, rbrs)
-}
-
-func yorn(s string, args ...any) {
-	if len(args) > 0 {
-		s = fmt.Sprintf(s, args...)
-	}
-	fmt.Print(s + " ([y]/n)?: ")
-	b := make([]byte, 2)
-	n := check.V(os.Stdin.Read(b)).F("read stdin")
-	check.T(n <= 1 || b[0] == 'y').F("aborted")
 }
 
 func (OpList) CA_CherryPickAbort() {
@@ -456,7 +446,7 @@ func (OpList) MR_DiscardModified() {
 	mygo.ParseFlag("file...")
 	s := quoteArgs(flag.Args(), "")
 	matched := sh("git ls-files -m %s", s)
-	yorn("discard modified: %s", strings.Replace(matched, "\n", " ", -1))
+	mygo.Yorn("discard modified: %s", strings.Replace(matched, "\n", " ", -1))
 	sh("git checkout %s", s)
 }
 
@@ -468,7 +458,7 @@ func (OpList) MX_Clean() {
 		log.Println("no file to clean")
 		return
 	}
-	yorn("delete these files?\n%s\n", s)
+	mygo.Yorn("delete these files?\n%s\n", s)
 	sh("git clean -f")
 }
 
@@ -703,17 +693,17 @@ func uncommitDeleteOrSquash(action string) {
 		if one {
 			log.Printf("undo commits [%s..%s]", start, end)
 		} else {
-			yorn("undo commits [%s..%s]", start, end)
+			mygo.Yorn("undo commits [%s..%s]", start, end)
 		}
 		sh("git reset --mixed %s~", cm)
 	case "delete":
-		yorn("delete commits [%s..%s]", start, end)
+		mygo.Yorn("delete commits [%s..%s]", start, end)
 		sh("git reset --hard %s~", cm)
 	case "squash":
 		if one {
 			log.Printf("squash commits [%s..%s]", start, end)
 		} else {
-			yorn("squash commits [%s..%s]", start, end)
+			mygo.Yorn("squash commits [%s..%s]", start, end)
 		}
 		msg := sh("git show -s --format=%B " + cm) // cannot format because of %B
 		sh("git reset --soft %s~", cm)
@@ -752,7 +742,7 @@ func (OpList) RT_ResetToBranchOrCommit() {
 	} else {
 		br = MainBranch()
 	}
-	yorn("reset %s to %s", CurBranch(), br)
+	mygo.Yorn("reset %s to %s", CurBranch(), br)
 	sh("git reset --hard %s --", br)
 }
 
@@ -948,11 +938,11 @@ func (OpList) GS_GithubStatus() {
 			fmt.Println(state)
 		case bc:
 			pullMain()
-			yorn("reset to %s", bm)
+			mygo.Yorn("reset to %s", bm)
 			sh("git reset --hard %s --", bm)
 		default:
 			rbrs := matchRemoteBranches("^"+br+"$", true, true)
-			yorn("delete local branch:%s and remote branches:%v", br, rbrs)
+			mygo.Yorn("delete local branch:%s and remote branches:%v", br, rbrs)
 			deleteBranches([]string{br}, rbrs)
 		}
 	}
