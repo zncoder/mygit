@@ -1000,6 +1000,5 @@ func main() {
 	log.SetFlags(0)
 	log.SetPrefix("# ")
 
-	gitops = mygo.BuildOPMap[OpList]()
-	gitops.RunCmd()
+	mygo.RunOpMapCmd[OpList]()
 }
