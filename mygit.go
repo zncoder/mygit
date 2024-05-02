@@ -386,6 +386,7 @@ func (OpList) CP_CherryPick() {
 
 func (OpList) PL_Pull() {
 	mygo.ParseFlag()
+	*verbose = true
 	sh("git pull --rebase")
 }
 
