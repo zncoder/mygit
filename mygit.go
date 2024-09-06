@@ -85,8 +85,12 @@ func CurBranch() string {
 
 func Username() string {
 	if username == "" {
-		u := check.V(user.Current()).F("username")
-		username = u.Username
+		username = sh("git config --get github.username")
+		if username == "" {
+			u := check.V(user.Current()).F("username")
+			username = u.Username
+		}
+		check.T(username != "").F("no username found")
 	}
 	return username
 }
@@ -195,8 +199,8 @@ func isCommit(s string) bool {
 }
 
 func pullMain() {
-	log.Println("pull main")
-	sh("git fetch --prune --tags")
+	// sh("git fetch --prune --tags")
+	sh("git fetch --prune")
 	bc := CurBranch()
 	bm := MainBranch()
 	br := RepoBranch()
@@ -225,12 +229,17 @@ func pullMain() {
 		log.Printf("switch to repo branch: %s", br)
 		checkoutBranch(br, false)
 	}
-	log.Printf("pull in %s", br)
 	sh("git rebase %s", bm)
 
 	if bc != bm || bc != br {
 		checkoutBranch(bc, false)
 	}
+}
+
+func (OpList) BB_Branch() {
+	mygo.ParseFlag()
+	s := sh("git branch -v")
+	fmt.Println("  " + s)
 }
 
 func (OpList) BO_CheckoutLocalBranch() {
@@ -326,7 +335,8 @@ func (OpList) BD_DeleteBranchLocalAndRemote() {
 		return
 	}
 
-	sh("git fetch --prune --tags")
+	// sh("git fetch --prune --tags")
+	sh("git fetch --prune")
 
 	lbrs := matchLocalBranches(pat, false, true)
 	var rbrs []string
@@ -750,11 +760,18 @@ func (OpList) RT_ResetToBranchOrCommit() {
 var prInTitleRe = regexp.MustCompile(`\(#[0-9]+\)$`)
 
 func (OpList) S_ShowStatusLocalBranches() {
+	details := flag.Bool("d", false, "show details")
 	mygo.ParseFlag()
+
+	if !*details {
+		s := sh("git status -uno")
+		fmt.Println(s)
+		return
+	}
 
 	var sb strings.Builder
 	sep := "================"
-	s := sh("git status -b")
+	s := sh("git status -b -uno")
 	for i, ln := range strings.Split(s, "\n") {
 		if i == 0 {
 			ln = strings.TrimPrefix(ln, "On branch ")
@@ -770,7 +787,7 @@ func (OpList) S_ShowStatusLocalBranches() {
 		sb.WriteByte('\n')
 	}
 
-	if sh("git status --porcelain") == "" {
+	if sh("git status --porcelain -uno") == "" {
 		title := sh("git log -n 1 --format=%s")
 		if !prInTitleRe.MatchString(title) {
 			s = sh(`git log -n 1 --format="" --name-only`)
