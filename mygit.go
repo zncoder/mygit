@@ -336,7 +336,7 @@ func (OpList) BD_DeleteBranchLocalAndRemote() {
 	}
 
 	// sh("git fetch --prune --tags")
-	sh("git fetch --prune")
+	// sh("git fetch --prune")
 
 	lbrs := matchLocalBranches(pat, false, true)
 	var rbrs []string
