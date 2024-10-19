@@ -394,6 +394,20 @@ func (OpList) CP_CherryPick() {
 	sh("git cherry-pick %s", cm)
 }
 
+func (OpList) CF_FormatPatch() {
+	mygo.ParseFlag("[n]")
+	n := 1
+	if flag.NArg() > 0 {
+		n = check.V(strconv.Atoi(flag.Arg(0))).F("invalid n")
+	}
+	sh("git format-patch -%d", n)
+}
+
+func (OpList) CM_ApplyPatch() {
+	mygo.ParseFlag("patch_file")
+	sh("git am -3 %s", flag.Arg(0))
+}
+
 func (OpList) PL_Pull() {
 	mygo.ParseFlag()
 	*verbose = true
