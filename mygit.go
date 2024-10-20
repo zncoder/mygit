@@ -774,18 +774,22 @@ func (OpList) RT_ResetToBranchOrCommit() {
 var prInTitleRe = regexp.MustCompile(`\(#[0-9]+\)$`)
 
 func (OpList) S_ShowStatusLocalBranches() {
-	details := flag.Bool("d", false, "show details")
-	mygo.ParseFlag()
+	mygo.ParseFlag("[q/b/f]")
 
-	if !*details {
+	if flag.NArg() == 0 || flag.Arg(0) == "q" {
 		s := sh("git status -uno")
 		fmt.Println(s)
 		return
 	}
 
+	mode := ""
+	if flag.Arg(0) == "b" {
+		mode = "-uno"
+	}
+
 	var sb strings.Builder
 	sep := "================"
-	s := sh("git status -b -uno")
+	s := sh("git status -b %s", mode)
 	for i, ln := range strings.Split(s, "\n") {
 		if i == 0 {
 			ln = strings.TrimPrefix(ln, "On branch ")
@@ -801,7 +805,7 @@ func (OpList) S_ShowStatusLocalBranches() {
 		sb.WriteByte('\n')
 	}
 
-	if sh("git status --porcelain -uno") == "" {
+	if sh("git status --porcelain %s", mode) == "" {
 		title := sh("git log -n 1 --format=%s")
 		if !prInTitleRe.MatchString(title) {
 			s = sh(`git log -n 1 --format="" --name-only`)
