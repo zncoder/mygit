@@ -270,8 +270,9 @@ func (OpList) BC_CheckoutCommit() {
 }
 
 func (OpList) BT_CheckoutAndTrackRemoteBranch() {
-	mygo.ParseFlag("remote_branch_re")
-	br := remoteBranch(flag.Arg(0))
+	mygo.ParseFlag("remote_branch")
+	br := flag.Arg(0)
+	sh("git fetch origin %s", br)
 	sh("git checkout -b %s --track origin/%s", br, br)
 }
 
@@ -405,7 +406,19 @@ func (OpList) CF_FormatPatch() {
 
 func (OpList) CM_ApplyPatch() {
 	mygo.ParseFlag("patch_file")
-	sh("git am -3 %s", flag.Arg(0))
+	sh("git apply --reject %s", flag.Arg(0))
+}
+
+func (OpList) PU_Upstream() {
+	mygo.ParseFlag()
+	sh("git fetch upstream")
+	bc := CurBranch()
+	bm := MainBranch()
+	if bc != bm {
+		checkoutBranch(bm, false)
+		defer checkoutBranch(bc, false)
+	}
+	sh("git rebase upstream/%s", bm)
 }
 
 func (OpList) PL_Pull() {
@@ -602,7 +615,7 @@ func (OpList) DC_GuiDiffCommit() {
 	mygo.ParseFlag("[commit]")
 	cm := "HEAD"
 	if flag.NArg() > 0 {
-		cm = flag.Arg(0)
+		cm = unaliasHead(flag.Arg(0))
 		if !isCommit(cm) {
 			cm = localBranch(cm, true)
 		}
@@ -613,12 +626,12 @@ func (OpList) DC_GuiDiffCommit() {
 
 func (OpList) RI_RebaseInteractive() {
 	mygo.ParseFlag("branch_re")
-	cm := flag.Arg(0)
+	cm := unaliasHead(flag.Arg(0))
 	if !strings.Contains(cm, "~") && !strings.Contains(cm, "^") && !isCommit(cm) {
 		cm = localBranch(cm, true)
 	}
 	sh("git rebase -i %s", cm)
-	revertEmacsBuffers()
+	// revertEmacsBuffers()
 }
 
 func (OpList) RC_RebaseCont() {
@@ -822,9 +835,23 @@ func (OpList) S_ShowStatusLocalBranches() {
 	fmt.Print(&sb)
 }
 
+var headAliasRe = regexp.MustCompile(`^h([0-9]+)$`)
+
+func unaliasHead(s string) string {
+	ss := headAliasRe.FindStringSubmatch(s)
+	if ss != nil {
+		return fmt.Sprintf("HEAD~%s", ss[1])
+	}
+	return s
+}
+
 func (OpList) SC_ShowCommitSummary() {
 	mygo.ParseFlag("[commit]")
-	s := sh("git show --name-only %s", quoteArgs(flag.Args(), ""))
+	var cm string
+	if flag.NArg() > 0 {
+		cm = unaliasHead(flag.Arg(0))
+	}
+	s := sh("git show --name-only %s", cm)
 	fmt.Println(s)
 }
 
