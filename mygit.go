@@ -48,7 +48,13 @@ func shellCmd(s string, ignoreErr bool, args ...any) string {
 		log.Println(s)
 	}
 
-	c := mygo.NewCmd("/bin/sh", "-c", s).Silent(!*verbose).IgnoreErr(ignoreErr)
+	c := mygo.NewCmd("/bin/sh", "-c", s)
+	if ignoreErr {
+		c = c.I()
+	}
+	if !*verbose {
+		c = c.S()
+	}
 	return string(bytes.TrimSpace(c.Stdout()))
 }
 
@@ -438,7 +444,7 @@ func (OpList) PS_Push() {
 
 		var s string
 		c := mygo.NewCmd("git", "ls-remote", "--exit-code", "--heads", "origin", "refs/heads/"+bm)
-		if c.RunWithExitCode() == 0 {
+		if c.Code() == 0 {
 			s = sh("git log --oneline origin/%s..%s", bm, bm)
 		} else {
 			s = sh("git log --oneline")
