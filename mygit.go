@@ -427,6 +427,19 @@ func (OpList) PU_Upstream() {
 	sh("git rebase upstream/%s", bm)
 }
 
+func (OpList) PT_PushTag() {
+	msg := flag.String("m", "", "tag message")
+	mygo.ParseFlag("tag")
+	tag := flag.Arg(0)
+
+	if *msg != "" {
+		sh(`git tag -a %s "%s"`, tag, msg)
+	} else {
+		sh("git tag %s", tag)
+	}
+	sh("git push origin %s", tag)
+}
+
 func (OpList) PL_Pull() {
 	mygo.ParseFlag()
 	*verbose = true
@@ -796,7 +809,7 @@ func (OpList) S_ShowStatusLocalBranches() {
 	mygo.ParseFlag("[q/b/f]")
 
 	if flag.NArg() == 0 || flag.Arg(0) == "q" {
-		s := sh("git status -uno")
+		s := sh("git status -unormal")
 		fmt.Println(s)
 		return
 	}
@@ -924,8 +937,16 @@ func (OpList) SV_ShowFileAtVersion() {
 	fmt.Println(s)
 }
 
+func unsetGithubToken() {
+	if *verbose {
+		log.Println("unset GITHUB_TOKEN")
+	}
+	os.Unsetenv("GITHUB_TOKEN")
+}
+
 func (OpList) GH_GithubPrStatus() {
 	mygo.ParseFlag()
+	unsetGithubToken()
 	s := shQ("gh pr status")
 	fmt.Println(s)
 }
@@ -934,6 +955,8 @@ func (OpList) GT_GithubPrDraft() {
 	draft := flag.Bool("w", false, "draft pr")
 	silent := flag.Bool("s", false, "don't open browser")
 	mygo.ParseFlag("[branch_re_or_commit]")
+	unsetGithubToken()
+
 	var bb string
 	if flag.NArg() > 0 {
 		bb = flag.Arg(0)
@@ -973,6 +996,8 @@ func showPR(br string) {
 
 func (OpList) GP_GithubThisPullrequest() {
 	mygo.ParseFlag("[branch_re_or_pr]")
+	unsetGithubToken()
+
 	var br string
 	if flag.NArg() > 0 {
 		br = flag.Arg(0)
@@ -986,6 +1011,8 @@ func (OpList) GP_GithubThisPullrequest() {
 
 func (OpList) GS_GithubStatus() {
 	mygo.ParseFlag("[branch_re_or_dot]")
+	unsetGithubToken()
+
 	if flag.NArg() == 0 {
 		fmt.Println(sh("gh pr status"))
 		return
