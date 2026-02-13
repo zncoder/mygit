@@ -250,13 +250,16 @@ func (OpList) BB_Branch() {
 
 func (OpList) BO_CheckoutLocalBranch() {
 	revertBuf := flag.Bool("r", false, "revert emacs buffers")
+	allowTmp := flag.Bool("t", false, "allow tmp branches")
 	mygo.ParseFlag("[branch_re]")
 
 	var br string
 	if flag.NArg() == 0 {
 		br = RepoBranch()
 	} else {
-		br = localBranch(flag.Arg(0), false)
+		brs := matchLocalBranches(flag.Arg(0), false, *allowTmp)
+		check.T(len(brs) == 1).F("not unique branch", "pattern", flag.Arg(0), "local_branches", brs)
+		br = brs[0]
 	}
 
 	bc := CurBranch()
