@@ -140,7 +140,7 @@ func localBranch(pat string, inUse bool) string {
 	return brs[0]
 }
 
-const tmpSuffix = "-base"
+const tmpSuffix = "--BASE"
 
 func matchLocalBranches(pat string, inUse, tmp bool) []string {
 	var brs []string
